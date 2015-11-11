@@ -16,6 +16,9 @@
 # Fortran module files
 *.mod
 
+# Compiled Python modules
+*.pyc
+
 # Compiled Static libraries
 *.lai
 *.la
@@ -31,7 +34,10 @@
 .codelite
 *.workspace
 *.project
+reas.sh
 
 # Build directories
 debug
+Debug
 release
+Release
