@@ -1,0 +1,19 @@
+cmake_minimum_required(VERSION 2.6)
+
+
+set(PB_LIB_OUTPUT_DIR ${PB_OUTPUT_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PB_LIB_OUTPUT_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PB_LIB_OUTPUT_DIR})
+
+
+set(PB_EXT_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+
+# SDL
+set(SDL_STATIC OFF)
+add_subdirectory("${PB_EXT_SOURCES_DIR}/SDL2")
+
+
+# GLEW
+set(BUILD_UTILS OFF)
+add_subdirectory("${PB_EXT_SOURCES_DIR}/glew/build/cmake")
