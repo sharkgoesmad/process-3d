@@ -1,7 +1,8 @@
+#include <GL/glew.h>
 #include <GL/gl.h>
 #include <SDL_video.h>
-
-#include "GLCtx.h"
+#include "core/log.h"
+#include "glctx.h"
 
 namespace pb
 {
@@ -17,6 +18,25 @@ GLCtx::GLCtx(void* pSDLGLContext, SDL_Window* pSDLWindow) :
 GLCtx::~GLCtx()
 {
 }
+
+
+PBError GLCtx::init()
+{
+    if ( mpWindow == NULL || mpGLContext == NULL )
+    {
+        Log::Error( "Invalid window or context" );
+        return PB_ERR;
+    }
+    
+    if ( glewInit() != GLEW_OK )
+    {
+        Log::Error( "Could not initialize GLEW" );
+        return PB_ERR;
+    }
+    
+    return PB_ERR_OK;
+}
+
 
 void GLCtx::Present()
 {

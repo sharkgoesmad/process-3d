@@ -14,10 +14,6 @@ typedef int PBError;
 
 #define PB_DELETE(ptr) do { delete ptr; ptr = NULL; } while (0)
     
-
-/* MATH */
-float Clamp(float x, float min, float max);
-    
 }
 
 #endif  // PBUTIL_H

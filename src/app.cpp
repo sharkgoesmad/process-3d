@@ -1,11 +1,15 @@
 #include <string>
-
-#include "App.h"
-#include "GLCtx.h"
-#include "pberror.h"
-
 #include <SDL.h>
 #include <SDL_video.h>
+#include "core/log.h"
+#include "core/pberror.h"
+#include "core/mathutil.h"
+#include "glctx.h"
+#include "app.h"
+
+
+
+
 
 
 namespace pb
@@ -28,6 +32,7 @@ App::App(const char* appName) :
 
 App::~App()
 {
+    Log::Release();
     SDL_DestroyWindow( mpWindow );
     SDL_Quit();
 }
@@ -61,6 +66,7 @@ PBError App::init()
         return setError(PB_ERROR_SDL);
     }
     
+    Log::Info( "App initialized successfully" );
     return PB_ERR_OK;
 }
 
@@ -174,9 +180,7 @@ const std::string& App::GetErrorMsg()
 
 void App::ShowErrMsgBox()
 {
-#ifdef PB_DEBUG
-    printf("%s\n", GetErrorMsg().c_str());
-#endif
+    Log::Debug( GetErrorMsg() );
     SDL_ShowSimpleMessageBox( SDL_MESSAGEBOX_ERROR, mAppName, GetErrorMsg().c_str(), NULL );
 }
 

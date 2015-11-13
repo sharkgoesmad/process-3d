@@ -38,13 +38,16 @@ list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/include)
 
 
 # accumulate source files
-file(GLOB PB_SOURCE_FILES ${PB_ROOT_DIR}/src/*.cpp)
+file(GLOB PB_SOURCE_FILES
+    ${PB_ROOT_DIR}/src/*.cpp
+    ${PB_ROOT_DIR}/src/core/*.cpp
+    )
 
 
 include_directories(BEFORE ${PB_INCLUDE_DIRS})
 link_directories(${PB_OUTPUT_DIR})
 add_executable(${PB_PROJECT} ${PB_SOURCE_FILES})
-target_link_libraries(${PB_PROJECT} SDL2main SDL2)
+target_link_libraries(${PB_PROJECT} SDL2main SDL2 glew)
 
 
 

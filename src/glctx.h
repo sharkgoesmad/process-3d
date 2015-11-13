@@ -1,6 +1,8 @@
 #ifndef GLCTX_H
 #define GLCTX_H
 
+#include "core/pbutil.h"
+
 
 class SDL_Window;
 
@@ -26,6 +28,11 @@ public:
     
 private:
     
+    PBError init();
+    
+private:
+    
+    PBError mStatus;
     void* mpGLContext;
     SDL_Window* mpWindow;
 
