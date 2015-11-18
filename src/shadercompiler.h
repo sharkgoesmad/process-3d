@@ -23,8 +23,9 @@ private:
 
 public:
 
-    unsigned int Compile(const std::string& strShader, ShaderType type);
-    unsigned int CompileFromFile(const std::string& path, ShaderType type);
+    static unsigned int Compile(const std::string& strShader, ShaderType type);
+    static unsigned int CompileFromFile(const std::string& path, ShaderType type);
+    static unsigned int Program(unsigned int idVertexShader, unsigned int idFragmentShader);
 
 };
 

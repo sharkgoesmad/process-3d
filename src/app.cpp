@@ -5,6 +5,7 @@
 #include "core/pberror.h"
 #include "core/mathutil.h"
 #include "glctx.h"
+#include "reasobject.h"
 #include "app.h"
 
 
@@ -17,7 +18,7 @@ namespace pb
 
 
 const unsigned int LOOP_TARGET_FPS = 60;
-const float LOOP_TICKS = 1000 / float(LOOP_TARGET_FPS);
+const float LOOP_TICKS = 1000 / float( LOOP_TARGET_FPS );
     
     
 App::App(const char* appName) :
@@ -93,6 +94,8 @@ PBError App::Start()
     SDL_ShowWindow( mpWindow );
     
     GLCtx ctx( mGLContext, mpWindow );
+    ReasObject reasObj;
+    
     uint32_t tElapsed;
     float delta = 1.0f;
     float ticksInv = 1.0f / LOOP_TICKS;

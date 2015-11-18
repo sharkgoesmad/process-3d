@@ -12,7 +12,7 @@ GLCtx::GLCtx(void* pSDLGLContext, SDL_Window* pSDLWindow) :
     mpGLContext( pSDLGLContext ),
     mpWindow( pSDLWindow )
 {
-    glClearColor( 0.1f, 0.1f, 0.15f, 1.0f );
+    mStatus = init();
 }
 
 GLCtx::~GLCtx()
@@ -33,6 +33,10 @@ PBError GLCtx::init()
         Log::Error( "Could not initialize GLEW" );
         return PB_ERR;
     }
+    
+    // TODO check GL version
+    
+    glClearColor( 0.1f, 0.1f, 0.15f, 1.0f );
     
     return PB_ERR_OK;
 }

@@ -36,6 +36,9 @@
 *.project
 reas.sh
 
+# Editor artifacts
+*~
+
 # Build directories
 debug
 Debug
