@@ -18,11 +18,13 @@ private:
 public:
 
     InstancedMesh(unsigned int primitiveType,
-                    Indicies& indicies,
-                    Positions& positions,
-                    ColorsRGBA& colors,
+                    Indicies* pIndicies,
+                    Positions* pPositions,
+                    ColorsRGBA* pColors,
                     unsigned int idProgram);
     virtual ~InstancedMesh();
+    
+    void Render(const glm::mat4& transform);
     
 private:
     
@@ -39,6 +41,11 @@ private:
     unsigned int mIdColorVBO;
     unsigned int mIdIndexArray;
     unsigned int mIdVAO;
+    
+    // backing buffers
+    Indicies* mpBkIndicies;
+    Positions* mpBkPositions;
+    ColorsRGBA* mpBkColors;
 
 };
 

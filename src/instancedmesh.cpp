@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
+#include <glm/mat4x4.hpp>
 #include "core/log.h"
 #include "instancedmesh.h"
 
@@ -7,17 +8,23 @@ namespace pb
 {
 
 InstancedMesh::InstancedMesh(GLuint primitiveType,
-    Indicies& indicies,
-    Positions& positions,
-    ColorsRGBA& colors,
+    Indicies* pIndicies,
+    Positions* pPositions,
+    ColorsRGBA* pColors,
     unsigned int idProgram) :
 
     mStatus( PB_ERR_OK ),
     mPrimitiveType( primitiveType ),
-    mIdProgram( idProgram )
+    mIdProgram( idProgram ),
+    mpBkIndicies( pIndicies ),
+    mpBkPositions( pPositions ),
+    mpBkColors( pColors )
 {
     unsigned int attribLocation;
     
+    Indicies& indicies = *mpBkIndicies;
+    Positions& positions = *mpBkPositions;
+    ColorsRGBA& colors = *mpBkColors;
     
     if ( positions.size() != colors.size() )
     {
@@ -76,6 +83,17 @@ InstancedMesh::InstancedMesh(GLuint primitiveType,
 
 InstancedMesh::~InstancedMesh()
 {
+    PB_DELETE( mpBkIndicies );
+    PB_DELETE( mpBkPositions );
+    PB_DELETE( mpBkColors );
+}
+
+void InstancedMesh::Render(const glm::mat4& transform)
+{
+    glBindVertexArray( mIdVAO );
+    
+    //glDrawElements( mPrimitiveType, )
+    
 }
 
 

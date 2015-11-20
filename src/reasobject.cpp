@@ -1,7 +1,7 @@
 #include <GL/gl.h>
 #include <glm/mat4x4.hpp>
 #include "pbconfig.h"
-#include "core/log.h"
+#include "core/pbutil.h"
 #include "shadercompiler.h"
 #include "instancedmesh.h"
 #include "reasobject.h"
@@ -10,21 +10,21 @@ namespace pb
 {
 
 ReasObject::ReasObject() :
-    mMesh( NULL ),
-    mTransform( NULL )
+    mpMesh( NULL ),
+    mpTransform( NULL )
 {
     mStatus = init();
 }
 
 ReasObject::~ReasObject()
 {
-    PB_DELETE( mTransform );
-    PB_DELETE( mMesh );
+    PB_DELETE( mpTransform );
+    PB_DELETE( mpMesh );
 }
 
 PBError ReasObject::init()
 {
-    glm::vec3 srcPositions[] = {
+    glm::vec3 srcPos[] = {
         
         glm::vec3( 0.0f, 0.0f, 0.0f ),
         glm::vec3( 0.0f, 0.5f, 0.0f ),
@@ -40,12 +40,17 @@ PBError ReasObject::init()
         
     };
     
-    uint32_t srcIndicies[] = { 0, 1, 2 };
+    uint32_t srcIdx[] = { 0, 1, 2 };
     
     
-    Positions positions( srcPositions, srcPositions + sizeof(srcPositions) / sizeof(srcPositions[0]) );
-    ColorsRGBA colors( srcColors, srcColors + sizeof(srcColors) / sizeof(srcColors[0]) );
-    Indicies indicies( srcIndicies, srcIndicies + sizeof(srcIndicies) / sizeof(srcIndicies[0]) );
+    scoped_ptr<Positions> pPositions( new Positions(srcPos, srcPos + sizeof(srcPos) / sizeof(srcPos[0])) );
+    scoped_ptr<ColorsRGBA> pColors( new ColorsRGBA(srcColors, srcColors + sizeof(srcColors) / sizeof(srcColors[0])) );
+    scoped_ptr<Indicies> pIndicies( new Indicies( srcIdx, srcIdx + sizeof(srcIdx) / sizeof(srcIdx[0])) );
+    
+    if ( !pPositions || !pColors || !pIndicies )
+    {
+        PB_ALLOCFAIL_RETURN();
+    }
 
 
     GLuint idVs, idFs, idProgram;
@@ -60,19 +65,24 @@ PBError ReasObject::init()
         return PB_ERR;
     }
 
-
-    if ( (mMesh = new InstancedMesh(GL_LINES, indicies, positions, colors, idProgram)) == NULL )
+    mpMesh = new InstancedMesh( GL_LINES, pIndicies.Disown(), pPositions.Disown(), pColors.Disown(), idProgram );
+    if ( mpMesh == NULL )
     {
-        PB_ALLOCFAIL_RETURN(__FILE__, __LINE__);
+        PB_ALLOCFAIL_RETURN();
     }
     
-    if ( (mTransform = new glm::mat4(1.0f)) == NULL )
+    if ( (mpTransform = new glm::mat4(1.0f)) == NULL )
     {
-        PB_ALLOCFAIL_RETURN(__FILE__, __LINE__);
+        PB_ALLOCFAIL_RETURN();
     }
     
 
     return PB_ERR_OK;
+}
+
+void ReasObject::Draw()
+{
+    
 }
 
 

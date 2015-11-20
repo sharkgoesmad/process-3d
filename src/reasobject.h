@@ -21,6 +21,7 @@ public:
 
     ReasObject();
     virtual ~ReasObject();
+    void Draw();
     
 private:
     
@@ -29,8 +30,8 @@ private:
 private:
     
     PBError mStatus;
-    InstancedMesh* mMesh;
-    glm::mat4* mTransform;
+    InstancedMesh* mpMesh;
+    glm::mat4* mpTransform;
 
 };
 
