@@ -12,7 +12,7 @@ namespace pb
 
 class GLCtx
 {
-    
+
 private:
 
     GLCtx(const GLCtx& rhs);
@@ -22,16 +22,16 @@ public:
 
     GLCtx(void* pSDLGLContext, SDL_Window* pSDLWindow);
     ~GLCtx();
-    
+
     void Present();
     void Clear();
-    
+
 private:
-    
+
     PBError init();
-    
+
 private:
-    
+
     PBError mStatus;
     void* mpGLContext;
     SDL_Window* mpWindow;

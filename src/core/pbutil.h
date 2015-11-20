@@ -27,7 +27,7 @@ typedef int PBError;
 template <typename T>
 class scoped_ptr
 {
-    
+
 private:
 
     scoped_ptr(const scoped_ptr& rhs);
@@ -42,18 +42,18 @@ public:
         mpManaged = NULL;
         return ptr;
     };
-    
+
     inline bool IsNull() { return mpManaged == NULL; };
     inline operator bool() { return !IsNull(); };
-    
+
 private:
-    
+
     T* mpManaged;
 
 };
 
 
-    
+
 }
 
 #endif  // PB_PBUTIL_H

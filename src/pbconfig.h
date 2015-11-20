@@ -13,7 +13,7 @@ namespace pb
 
 #define PB_RESOURCE_PATH(res) (PB_RESOURCE_PATH_PREFIX "/" res)
 
-    
+
 };
 
 #endif  // PBCONFIG_H

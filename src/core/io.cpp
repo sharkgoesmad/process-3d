@@ -20,10 +20,10 @@ PBError IO::ReadText(const std::string& path, std::string& text)
 
         // initialize the string with file contents
         text.assign( (std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>() );
-        
+
         err = PB_ERR_OK;
     }
-    
+
     return err;
 }
 

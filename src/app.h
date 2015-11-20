@@ -24,20 +24,20 @@ public:
 
     App(const char* appName);
     virtual ~App();
-    
+
     bool StatusOk();
     PBError Start();
     void Stop();
     const std::string& GetErrorMsg();
     void ShowErrMsgBox();
-    
-    
+
+
 private:
-    
+
     PBError init();
     PBError setError(PBError err);
     PBError setRequiredGLAttribs();
-    
+
 private:
 
     PBError mStatus;

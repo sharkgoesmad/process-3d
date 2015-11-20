@@ -9,7 +9,7 @@ namespace pb
 
 class IO
 {
-    
+
 private:
 
     IO(){};

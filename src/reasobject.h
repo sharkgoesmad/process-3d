@@ -6,12 +6,12 @@
 
 namespace pb
 {
-    
+
 class InstancedMesh;
 
 class ReasObject
 {
-    
+
 private:
 
     ReasObject(const ReasObject& rhs);
@@ -22,13 +22,13 @@ public:
     ReasObject();
     virtual ~ReasObject();
     void Draw();
-    
+
 private:
-    
+
     PBError init();
-    
+
 private:
-    
+
     PBError mStatus;
     InstancedMesh* mpMesh;
     glm::mat4* mpTransform;

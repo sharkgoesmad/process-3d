@@ -9,7 +9,7 @@ namespace pb
 
 class InstancedMesh
 {
-    
+
 private:
 
     InstancedMesh(const InstancedMesh& rhs);
@@ -23,25 +23,25 @@ public:
                     ColorsRGBA* pColors,
                     unsigned int idProgram);
     virtual ~InstancedMesh();
-    
+
     void Render(const glm::mat4& transform);
-    
+
 private:
-    
+
     PBError init();
-    
+
 private:
-    
+
     PBError mStatus;
     unsigned int mPrimitiveType;
     unsigned int mIdProgram;
-    
+
     // TODO refactor to use packed attributes
     unsigned int mIdPositionVBO;
     unsigned int mIdColorVBO;
     unsigned int mIdIndexArray;
     unsigned int mIdVAO;
-    
+
     // backing buffers
     Indicies* mpBkIndicies;
     Positions* mpBkPositions;

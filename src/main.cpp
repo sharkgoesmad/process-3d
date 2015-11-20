@@ -4,7 +4,7 @@
 int main(int argc, char** argv)
 {
     pb::App app("Process 3D");
-    
+
     if ( app.StatusOk() )
     {
         app.Start();
@@ -13,6 +13,6 @@ int main(int argc, char** argv)
     {
         app.ShowErrMsgBox();
     }
-    
+
     return 0;
 }

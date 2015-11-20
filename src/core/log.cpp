@@ -22,7 +22,7 @@ Log* Log::instance()
     {
         mInstance = new Log();
     }
-    
+
     return mInstance;
 }
 

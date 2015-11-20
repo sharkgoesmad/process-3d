@@ -27,17 +27,17 @@ PBError GLCtx::init()
         Log::Error( "Invalid window or context" );
         return PB_ERR;
     }
-    
+
     if ( glewInit() != GLEW_OK )
     {
         Log::Error( "Could not initialize GLEW" );
         return PB_ERR;
     }
-    
+
     // TODO check GL version
-    
+
     glClearColor( 0.1f, 0.1f, 0.15f, 1.0f );
-    
+
     return PB_ERR_OK;
 }
 

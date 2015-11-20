@@ -14,9 +14,9 @@ public:
         Shader_Vertex = 0,
         Shader_Fragment
     };
-    
+
 private:
-    
+
     ShaderCompiler();
     ShaderCompiler(const ShaderCompiler& rhs);
     ShaderCompiler& operator=(const ShaderCompiler& rhs);
