@@ -1,6 +1,8 @@
 #ifndef SHADERCOMPILER_H
 #define SHADERCOMPILER_H
 
+#include <string>
+
 namespace pb
 {
 

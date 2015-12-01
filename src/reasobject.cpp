@@ -1,3 +1,4 @@
+#include <cassert>
 #include <GL/gl.h>
 #include <glm/mat4x4.hpp>
 #include "pbconfig.h"
@@ -9,34 +10,62 @@
 namespace pb
 {
 
-ReasObject::ReasObject() :
-    mpMesh( NULL ),
-    mpTransform( NULL )
+ReasObject::ReasObject(const ReasObject& rhs) :
+    ReasObject()
 {
-    mStatus = init();
+    //obj = rhs;
+    mpMesh = rhs.mpMesh;
+    mId = mpMesh->AddInstance();
+    mpTransform = mpMesh->Transform( mId );
+}
+
+ReasObject::ReasObject() :
+    mId( 0 ),
+    mpMesh( NULL )
+{
+    //mStatus = init();
+    mStatus = PB_ERR;
 }
 
 ReasObject::~ReasObject()
 {
-    PB_DELETE( mpTransform );
-    PB_DELETE( mpMesh );
+    //PB_DELETE( mpTransform );
+    //PB_DELETE( mpMesh );
+}
+
+void ReasObject::Make(ReasObject& obj)
+{
+    // TODO set size based in GL_MAX_INSTANCES
+    obj.mHintPerInstanceTableSize = 50000;
+    obj.mStatus = obj.init();
+}
+
+void ReasObject::MakeAnother(const ReasObject& alpha, ReasObject& another)
+{
+    another.mpMesh = alpha.mpMesh;
+    another.mId = another.mpMesh->AddInstance();
+    another.mpTransform = another.mpMesh->Transform( another.mId );
 }
 
 PBError ReasObject::init()
 {
     glm::vec3 srcPos[] = {
 
+        glm::vec3( 0.0f, -0.5f, 0.0f ),
         glm::vec3( 0.0f, 0.0f, 0.0f ),
-        glm::vec3( 0.0f, 0.5f, 0.0f ),
-        glm::vec3( 0.0f, 1.0f, 0.0f )
+        glm::vec3( 0.0f, 0.5f, 0.0f )
+//        glm::vec3( 0.4f, 0.1f, 0.0f ),
+//        glm::vec3( -0.5f, -0.3f, 0.0f )
 
     };
 
     uint32_t srcColors[] = {
-
-        0x000000FF,
-        0x000033FF,
-        0x000077FF
+        //ABGR
+        0x01010000,
+        0x01020000,
+        0x02040000
+//        0x00010000,
+//        0x01020000
 
     };
 
@@ -45,11 +74,11 @@ PBError ReasObject::init()
 
     scoped_ptr<Positions> pPositions( new Positions(srcPos, srcPos + sizeof(srcPos) / sizeof(srcPos[0])) );
     scoped_ptr<ColorsRGBA> pColors( new ColorsRGBA(srcColors, srcColors + sizeof(srcColors) / sizeof(srcColors[0])) );
-    scoped_ptr<Indicies> pIndicies( new Indicies( srcIdx, srcIdx + sizeof(srcIdx) / sizeof(srcIdx[0])) );
+    scoped_ptr<Indices> pIndices( new Indices( srcIdx, srcIdx + sizeof(srcIdx) / sizeof(srcIdx[0])) );
 
-    if ( !pPositions || !pColors || !pIndicies )
+    if ( !pPositions || !pColors || !pIndices )
     {
-        PB_ALLOCFAIL_RETURN();
+        PB_RETURN_ALLOCFAIL();
     }
 
 
@@ -65,24 +94,47 @@ PBError ReasObject::init()
         return PB_ERR;
     }
 
-    mpMesh = new InstancedMesh( GL_LINES, pIndicies.Disown(), pPositions.Disown(), pColors.Disown(), idProgram );
+    mpMesh.reset( new InstancedMesh(
+        GL_LINE_STRIP,
+        pIndices.Disown(),
+        pPositions.Disown(),
+        pColors.Disown(),
+        idProgram,
+        mHintPerInstanceTableSize) );
+
     if ( mpMesh == NULL )
     {
-        PB_ALLOCFAIL_RETURN();
+        PB_RETURN_ALLOCFAIL();
     }
 
-    if ( (mpTransform = new glm::mat4(1.0f)) == NULL )
-    {
-        PB_ALLOCFAIL_RETURN();
-    }
+    mId = mpMesh->AddInstance();
+    mpTransform = mpMesh->Transform( mId );
 
 
     return PB_ERR_OK;
 }
 
-void ReasObject::Draw()
+void ReasObject::Update()
 {
+    if ( transformDirty() )
+    {
+        computeTransform();
+    }
+}
 
+void ReasObject::Draw(const glm::mat4& vp)
+{
+    assert( mId == 0 );
+    mpMesh->Render( vp );
+}
+
+void ReasObject::computeTransform()
+{
+    if ( transformDirty() )
+    {
+        Object::computeTransform();
+        mpMesh->UpdateTransform( mId );
+    }
 }
 
 

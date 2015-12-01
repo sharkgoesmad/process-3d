@@ -32,7 +32,9 @@ add_subdirectory("${PB_ROOT_DIR}/external")
 list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/external/SDL2/include)
 list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/external/glew/include)
 list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/external/glm)
+list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/external/bullet3/src)
 list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/include)
+list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/src)
 
 
 
@@ -41,13 +43,21 @@ list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/include)
 file(GLOB PB_SOURCE_FILES
     ${PB_ROOT_DIR}/src/*.cpp
     ${PB_ROOT_DIR}/src/core/*.cpp
+    ${PB_ROOT_DIR}/src/reas/*.cpp
     )
 
 
 include_directories(BEFORE ${PB_INCLUDE_DIRS})
 link_directories(${PB_OUTPUT_DIR})
 add_executable(${PB_PROJECT} ${PB_SOURCE_FILES})
-target_link_libraries(${PB_PROJECT} SDL2main SDL2 glew)
+target_link_libraries(${PB_PROJECT}
+    SDL2main
+    SDL2
+    glew
+    BulletDynamics
+    BulletCollision
+    LinearMath
+    )
 
 
 

@@ -28,6 +28,7 @@ PBError GLCtx::init()
         return PB_ERR;
     }
 
+    glewExperimental = GL_TRUE;
     if ( glewInit() != GLEW_OK )
     {
         Log::Error( "Could not initialize GLEW" );
@@ -35,8 +36,28 @@ PBError GLCtx::init()
     }
 
     // TODO check GL version
+    int val;
+    SDL_GL_GetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, &val );
+    SDL_GL_GetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, &val );
+    int mask = SDL_GL_CONTEXT_PROFILE_CORE;
+    SDL_GL_GetAttribute( SDL_GL_CONTEXT_PROFILE_MASK, &val );
 
-    glClearColor( 0.1f, 0.1f, 0.15f, 1.0f );
+    glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+    //glEnable( GL_DEPTH_TEST );
+    glEnable( GL_DOUBLEBUFFER );
+    //glEnable( GL_ALPHA_TEST );
+    glEnable( GL_BLEND );
+
+    // traditional blending
+    //glBlendEquationSeparate( GL_FUNC_ADD, GL_FUNC_ADD );
+    //glBlendFuncSeparate( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO );
+    glBlendFunc(GL_ONE, GL_ONE);
+
+    glLineWidth( 5.0f );
+    glEnable( GL_LINE_SMOOTH );
+    //glEnable( GL_POLYGON_SMOOTH );
+    //glDisable( GL_DITHER );
+    //glDisable( GL_MULTISAMPLE );
 
     return PB_ERR_OK;
 }
@@ -49,7 +70,7 @@ void GLCtx::Present()
 
 void GLCtx::Clear()
 {
-    glClear( GL_COLOR_BUFFER_BIT );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 }
 
 

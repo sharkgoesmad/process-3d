@@ -1,7 +1,10 @@
 #ifndef REASOBJECT_H
 #define REASOBJECT_H
 
+#include <memory>
+#include "core/pbutil.h"
 #include "core/glmcfg.h"
+#include "core/object.h"
 
 
 namespace pb
@@ -9,7 +12,7 @@ namespace pb
 
 class InstancedMesh;
 
-class ReasObject
+class ReasObject : public Object
 {
 
 private:
@@ -21,7 +24,18 @@ public:
 
     ReasObject();
     virtual ~ReasObject();
-    void Draw();
+    static void Make(ReasObject& obj);
+    static void MakeAnother(const ReasObject& alpha, ReasObject& another);
+    void Update();
+    void Draw(const Mat4& vp);
+
+protected:
+
+    void computeTransform();
+
+protected:
+
+    unsigned int mHintPerInstanceTableSize;
 
 private:
 
@@ -29,9 +43,8 @@ private:
 
 private:
 
-    PBError mStatus;
-    InstancedMesh* mpMesh;
-    glm::mat4* mpTransform;
+    unsigned int mId;
+    std::shared_ptr<InstancedMesh> mpMesh;
 
 };
 

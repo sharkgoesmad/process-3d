@@ -17,3 +17,9 @@ add_subdirectory("${PB_EXT_SOURCES_DIR}/SDL2")
 # GLEW
 set(BUILD_UTILS OFF)
 add_subdirectory("${PB_EXT_SOURCES_DIR}/glew/build/cmake")
+
+
+# BULLET
+set(BUILD_CPU_DEMOS OFF)
+set(BUILD_BULLET2_DEMOS OFF)
+add_subdirectory("${PB_EXT_SOURCES_DIR}/bullet3")

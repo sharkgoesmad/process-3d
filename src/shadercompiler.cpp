@@ -14,7 +14,7 @@ void showShaderInfoLog(GLuint id, bool success)
     int msgLen;
     glGetShaderiv( id, GL_INFO_LOG_LENGTH, &msgLen );
 
-    if ( msgLen > 0 )
+    if ( msgLen > 1 )
     {
         std::vector<char> msg( msgLen );
         glGetShaderInfoLog( id, msgLen, NULL, &msg[0] );

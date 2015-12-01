@@ -2,6 +2,7 @@
 #define PB_PBUTIL_H
 
 #include "log.h"
+#include "guid.h"
 
 namespace pb
 {
@@ -15,13 +16,16 @@ typedef int PBError;
 #define PB_FAILED(x) (x != PB_ERR_OK)
 
 #define PB_DELETE(ptr) do { delete ptr; ptr = NULL; } while (0)
+#define PB_DELETE_ARRAY(ptr) do { delete[] ptr; ptr = NULL; } while (0)
 
 #define PB_GL_INVALID_ID 0x0
 
 #define XSTRINGIFY(s) STRINGIFY(s)
 #define STRINGIFY(s) #s
 
-#define PB_ALLOCFAIL_RETURN() ({ Log::Error(__FILE__ ": line " XSTRINGIFY(__LINE__) ": Alloc failed"); return PB_ERR; })
+#define PB_RETURN_ALLOCFAIL() ({ Log::Error(__FILE__ ": line " XSTRINGIFY(__LINE__) ": Alloc failed"); return PB_ERR; })
+
+#define STR(x) std::to_string(x)
 
 
 template <typename T>
