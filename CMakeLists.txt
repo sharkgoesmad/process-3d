@@ -33,6 +33,7 @@ list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/external/SDL2/include)
 list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/external/glew/include)
 list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/external/glm)
 list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/external/bullet3/src)
+list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/external/AntTweakBar-sdl2/include)
 list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/include)
 list(APPEND PB_INCLUDE_DIRS ${PB_ROOT_DIR}/src)
 
@@ -57,6 +58,7 @@ target_link_libraries(${PB_PROJECT}
     BulletDynamics
     BulletCollision
     LinearMath
+    AntTweakBar
     )
 
 

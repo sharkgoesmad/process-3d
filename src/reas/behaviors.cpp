@@ -11,43 +11,97 @@ namespace pb
 
 using namespace reas;
 
-void bhv_move_straight::operator()(Form* pForm)
+
+static const Quat gNoRotation;
+
+
+const Quat gSlightRotation = glm::rotation( Vec3(0,0,1), Vec3(0.05f, 0.05f, 0.998f) ); //Quat( 0.1f, glm::sphericalRand(1.0f) );
+
+void bhv_move_straight::operator()(Form* pForm, float tScale)
 {
-    pForm->Translate( pForm->direction * 0.1f );
+    pForm->Translate( pForm->direction * pForm->speed * tScale );
 }
 
-void bhv_bounds_reflect::operator()(Form* pForm, BoundsVolume* pBounds)
+void bhv_move_deviate::operator()(Form* pForm, float tScale)
 {
-    Vec3 intersectionNormal;
-    pForm->SetPosition( pForm->Position() - pForm->direction * 0.5f );
-    pBounds->IntersectionNormal( pForm, intersectionNormal );
-
-    Vec3 newDirection( glm::reflect(pForm->direction, intersectionNormal) );
-    pForm->direction = glm::normalize( newDirection );
+    pForm->direction = glm::normalize( glm::mix(pForm->direction + glm::sphericalRand(0.1f), pForm->direction, 0.8f) );
+    pForm->Translate( pForm->direction * pForm->speed * tScale );
 }
 
-void bhv_collision_changeDir::operator()(Form* pForm1, const Vec3& normal1, Form* pForm2)
+void bhv_bounds_bounceoff::operator()(Form* pForm, BoundsVolume* pBounds)
 {
-    // TODO better handle this
-    // pick a random direction
-    //pForm1->direction = glm::normalize( glm::sphericalRand( 1.0f ) );
-    Vec3 newDirection( glm::reflect(pForm1->direction, normal1) );
-    pForm1->direction = glm::normalize( newDirection );
-
-    Vec3 pos( glm::mix(pForm1->Position(), pForm2->Position(), 0.5f) );
-    Vec3 diff( pForm1->Position() - pForm2->Position() );
-    Quat rot = glm::rotation( Vec3(0.0f, 1.0f, 0.0f), glm::normalize(diff) );
-    ReasObject obj;
-    ReasObject::MakeAnother( *Process::ReasAlpha(), obj );
-    obj.SetOrientation( rot );
-    obj.SetPosition( pos );
-    obj.Update();
+    pForm->direction *= -1.0f;
+    pForm->Translate( pForm->direction * pForm->HalfSize() );
 }
 
-void bhv_overlap_moveAway::operator()(Form* pForm)
+void bhv_bounds_returnToOrigin::operator()(Form* pForm, BoundsVolume* pBounds)
 {
-    // move in opposite direction
-    pForm->direction *= -1;
+    pForm->SetPosition( pBounds->Origin() );
+};
+
+void bhv_bounds_returnToProgress::operator()(Form* pForm, BoundsVolume* pBounds)
+{
+    // slerp
+    float x = pBounds->HalfExtent() - pForm->pprogress->tProgress;
+    float r = pBounds->HalfExtent();
+    float val = glm::sqrt( r*r - x*x );
+    pForm->SetPosition( pBounds->Origin() + pForm->direction * val );
+};
+
+void bhv_bounds_enterOpposite::operator()(Form* pForm, BoundsVolume* pBounds)
+{
+    Vec3 pos;
+    pBounds->OppositeSide( pForm, pos );
+    pForm->SetPosition( pos + (pForm->direction * (pForm->HalfSize() + 1.0f)) );
+}
+
+
+void bhv_bounds_enterOppositeNormal::operator()(Form* pForm, BoundsVolume* pBounds)
+{
+    Vec3 pos;
+    pBounds->OppositeSideNormal( pForm, pos );
+    pForm->SetPosition( pos + (pForm->direction * (pForm->HalfSize() + 1.0f)) );
+}
+
+
+void bhv_collision_changeDir::operator()(Form* pForm1, const Vec3& normal, Form* pForm2, float tScale)
+{
+    float dot = glm::dot( normal, pForm1->direction );
+    if ( dot == -1.0f )
+    {
+        pForm1->direction = glm::rotate( gSlightRotation, pForm1->direction );
+    }
+
+    //
+    Vec3 tangent( glm::cross(pForm1->direction, normal) );
+    Quat rotation( glm::angleAxis(pForm1->angSpeed * tScale, tangent) );
+    pForm1->direction = glm::normalize( glm::rotate(rotation, pForm1->direction) );
+}
+
+void bhv_collision_follow::operator()(Form* pForm1, const Vec3& normal1, Form* pForm2, float tScale)
+{
+    Quat rotation( glm::rotation(pForm1->direction, pForm2->direction) );
+    rotation = glm::lerp( gNoRotation, rotation, pForm1->angSpeed * tScale );
+    pForm1->direction = glm::normalize( glm::rotate(rotation, pForm1->direction) );
+}
+
+void bhv_overlap_moveAway::operator()(Form* pForm, Form** arraypColliders, unsigned int count, float tScale)
+{
+    Form** it = &arraypColliders[ 0 ];
+    Form** itEnd = ( &arraypColliders[ count-1 ] ) + 1;
+
+    const Vec3& formPos( pForm->Position() );
+    Vec3 netDir( 0.0f );
+    while ( it != itEnd )
+    {
+        netDir += formPos - (*it)->Position();
+        ++it;
+    }
+
+    netDir /= count;
+    netDir = glm::normalize( netDir );
+
+    pForm->Translate( netDir * pForm->speed * tScale );
 }
 
 };

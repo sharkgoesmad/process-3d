@@ -1,10 +1,10 @@
 #include <cassert>
-#include <GL/gl.h>
+//#include <GL/gl.h>
 #include <glm/mat4x4.hpp>
 #include "pbconfig.h"
 #include "core/pbutil.h"
 #include "shadercompiler.h"
-#include "instancedmesh.h"
+#include "instancedgeometry.h"
 #include "instancedobject.h"
 
 namespace pb
@@ -14,14 +14,13 @@ InstancedObject::InstancedObject(const InstancedObject& rhs) :
     InstancedObject()
 {
     //obj = rhs;
-    mpMesh = rhs.mpMesh;
-    mId = mpMesh->AddInstance();
-    mpTransform = mpMesh->Transform( mId );
+    mpGeometry = rhs.mpGeometry;
+    mId = mpGeometry->AddInstance();
 }
 
 InstancedObject::InstancedObject() :
     mId( 0 ),
-    mpMesh( NULL )
+    mpGeometry( NULL )
 {
     //mStatus = init();
     mStatus = PB_ERR;
@@ -30,28 +29,25 @@ InstancedObject::InstancedObject() :
 InstancedObject::~InstancedObject()
 {
     // TODO
-    //PB_DELETE( mpTransform );
-    //PB_DELETE( mpMesh );
+    //PB_DELETE( mpTransform ); <- mesh owns thetransform
+    //PB_DELETE( mpGeometry );
 }
 
-void InstancedObject::Make(InstancedObject& obj, unsigned int hintPerInstanceTableSize)
+void InstancedObject::Make(InstancedObject* pObj, unsigned int hintPerInstanceTableSize)
 {
-    obj.mHintPerInstanceTableSize = hintPerInstanceTableSize;
-    obj.mStatus = obj.init();
+    pObj->mHintPerInstanceTableSize = hintPerInstanceTableSize;
+    pObj->mStatus = pObj->init();
 }
 
-void InstancedObject::MakeAnother(const InstancedObject& alpha, InstancedObject& another)
-{
-    another.mpMesh = alpha.mpMesh;
-    another.mId = another.mpMesh->AddInstance();
-    another.mpTransform = another.mpMesh->Transform( another.mId );
-}
+//void InstancedObject::MakeAnother(const InstancedObject& alpha, InstancedObject& another)
+//{
+//    another.mpGeometry = alpha.mpGeometry;
+//    another.mId = another.mpGeometry->AddInstance();
+////    another.mpTransform = another.mpGeometry->Transform( another.mId );
+//}
 
 PBError InstancedObject::init()
 {
-    mId = mpMesh->AddInstance();
-    mpTransform = mpMesh->Transform( mId );
-
     return PB_ERR_OK;
 }
 
@@ -65,8 +61,13 @@ void InstancedObject::Update()
 
 void InstancedObject::Draw(const glm::mat4& vp)
 {
+    // should be carried out by alpha instance only
     assert( mId == 0 );
-    mpMesh->Render( vp );
+
+    if ( Visible() )
+    {
+        mpGeometry->Render( vp );
+    }
 }
 
 void InstancedObject::computeTransform()
@@ -74,7 +75,11 @@ void InstancedObject::computeTransform()
     if ( transformDirty() )
     {
         Object::computeTransform();
-        mpMesh->UpdateTransform( mId );
+
+        if ( Visible() )
+        {
+            updateTransformAttrib();
+        }
     }
 }
 

@@ -21,11 +21,20 @@ private:
 
 public:
 
-    BoundsVolume(){};
+    BoundsVolume(const Vec3 center = Vec3(0.0f,0.0f,0.0f)) : mCenter( center ) {};
     virtual ~BoundsVolume(){};
+
+    const Vec3& Origin() { return mCenter; };
 
     virtual bool IsFormInside(Form* pForm) = 0;
     virtual void IntersectionNormal(Form* pForm, Vec3& norm) = 0;
+    virtual void OppositeSide(Form* pForm, Vec3& position) = 0;
+    virtual void OppositeSideNormal(Form* pForm, Vec3& position) = 0;
+    virtual float HalfExtent() = 0;
+
+protected:
+
+    Vec3 mCenter;
 
 };
 
@@ -36,16 +45,18 @@ class SphereBoundsVolume : public BoundsVolume
 public:
 
     SphereBoundsVolume(float radius, const Vec3 center = Vec3(0.0f,0.0f,0.0f)) :
-        mCenter( center ),
+        BoundsVolume( center ),
         mRadius( radius )
     {}
 
     bool IsFormInside(Form* pForm);
     void IntersectionNormal(Form* pForm, Vec3& norm);
+    void OppositeSide(Form* pForm, Vec3& position);
+    void OppositeSideNormal(Form* pForm, Vec3& position);
+    float HalfExtent() { return mRadius; };
 
 private:
 
-    Vec3 mCenter;
     float mRadius;
 
 };
@@ -55,13 +66,26 @@ inline bool SphereBoundsVolume::IsFormInside(Form* pForm)
     // TODO better test
     Vec3 dist( mCenter - pForm->Position() );
 
-    return glm::length( dist ) <= mRadius;
+    return glm::length( dist ) <= ( mRadius - pForm->HalfSize() );
 }
 
 inline void SphereBoundsVolume::IntersectionNormal(Form* pForm, Vec3& norm)
 {
     Vec3 position;
-    glm::intersectRaySphere( pForm->position, pForm->direction, mCenter, mRadius, position, norm );
+    glm::intersectRaySphere( pForm->Position(), pForm->direction, mCenter, mRadius, position, norm );
+}
+
+inline void SphereBoundsVolume::OppositeSide(Form* pForm, Vec3& position)
+{
+    Vec3 norm;
+    glm::intersectRaySphere( pForm->Position(), pForm->direction * -1.0f, mCenter, mRadius, position, norm );
+}
+
+inline void SphereBoundsVolume::OppositeSideNormal(Form* pForm, Vec3& position)
+{
+    Vec3 norm;
+    Vec3 dir( glm::normalize(pForm->Position() - mCenter) );
+    glm::intersectRaySphere( pForm->Position(), dir * -1.0f, mCenter, mRadius, position, norm );
 }
 
 };

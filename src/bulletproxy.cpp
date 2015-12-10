@@ -10,6 +10,7 @@ namespace pb
 
 
 BulletProxy::CollisionCallback gCollisionCb;
+void* gpExtraUserData;
 
 
 class MotionState : public btDefaultMotionState
@@ -26,9 +27,12 @@ public:
     virtual void getWorldTransform(btTransform &worldTrans) const
     {
         const glm::vec3& v = mpObj->Position();
+        const glm::quat& q = mpObj->Orientation();
         btVector3 pos( v.x, v.y, v.z );
+        btQuaternion quat( q.x, q.y, q.z, q.w );
 
         worldTrans.setOrigin( pos );
+        worldTrans.setRotation( quat );
         // TODO
         //worldTrans = mInitialPosition;
     }
@@ -45,15 +49,15 @@ void tickCallback(btDynamicsWorld* pWorld, btScalar timeStep)
     int numManifolds = pWorld->getDispatcher()->getNumManifolds();
     for ( int i = 0; i < numManifolds; ++i )
     {
-        btPersistentManifold* contactManifold =  pWorld->getDispatcher()->getManifoldByIndexInternal(i);
-        const btCollisionObject* obA = static_cast<const btCollisionObject*>( contactManifold->getBody0() );
-        const btCollisionObject* obB = static_cast<const btCollisionObject*>( contactManifold->getBody1() );
+        btPersistentManifold* contactManifold =  pWorld->getDispatcher()->getManifoldByIndexInternal( i );
+        const btCollisionObject* obA = static_cast< const btCollisionObject* >( contactManifold->getBody0() );
+        const btCollisionObject* obB = static_cast< const btCollisionObject* >( contactManifold->getBody1() );
 
         int numContacts = contactManifold->getNumContacts();
-        for (int j=0;j<numContacts;j++)
+        for ( int j = 0; j < numContacts; ++j )
         {
-            btManifoldPoint& pt = contactManifold->getContactPoint(j);
-            if (pt.getDistance()<0.f)
+            btManifoldPoint& pt = contactManifold->getContactPoint( j );
+            if ( pt.getDistance() < 0.0f )
             {
                 BulletProxy::CollisionInfo cInfo;
                 cInfo.ctx1 = obA->getUserPointer();
@@ -62,9 +66,9 @@ void tickCallback(btDynamicsWorld* pWorld, btScalar timeStep)
                 //const btVector3& ptB = pt.getPositionWorldOnB();
                 const btVector3& n2 = pt.m_normalWorldOnB;
                 cInfo.normal1 = Vec3( n2.x(), n2.y(), n2.z() );
-                cInfo.normal2 = Vec3( n2.x(), n2.y(), n2.z() ) * -0.1f;
+                cInfo.normal2 = Vec3( n2.x(), n2.y(), n2.z() ) * -1.0f;
 
-                gCollisionCb( cInfo );
+                gCollisionCb( cInfo, gpExtraUserData );
             }
         }
     }
@@ -85,6 +89,9 @@ BulletProxy::BulletProxy() :
 
 BulletProxy::~BulletProxy()
 {
+    ReleaseTrackedObjects();
+
+    PB_DELETE( mpCollisionShapes );
     PB_DELETE( mpWorld );
     PB_DELETE( mpSolver );
     PB_DELETE( mpBVTiface );
@@ -120,6 +127,8 @@ PBError BulletProxy::init()
         PB_RETURN_ALLOCFAIL();
     }
 
+    mpCollisionShapes = new btAlignedObjectArray<btCollisionShape*>();
+
     mpWorld->setInternalTickCallback( tickCallback );
 
     return PB_ERR_OK;
@@ -128,6 +137,32 @@ PBError BulletProxy::init()
 void BulletProxy::Step(float timeStep)
 {
     mpWorld->stepSimulation( timeStep );
+}
+
+btConvexInternalShape* BulletProxy::getShape(ColliderType type, float halfExtent)
+{
+    btConvexInternalShape* pShape = NULL;
+
+    switch ( type )
+    {
+        case Sphere:
+            pShape = new btSphereShape( btScalar(halfExtent) );
+            break;
+
+        case LineZ:
+        {
+            btVector3 v( 0.1f, 0.1f, halfExtent );
+            pShape = new btCylinderShapeZ( v );
+            break;
+        }
+
+        default:
+            Log::Warn( "Assigning default collision type (sphere)" );
+            pShape = new btSphereShape( btScalar(halfExtent) );
+            break;
+    }
+
+    return pShape;
 }
 
 void BulletProxy::TrackObjects(std::vector<ObjectData>& objects)
@@ -140,7 +175,9 @@ void BulletProxy::TrackObjects(std::vector<ObjectData>& objects)
         // TODO init transform
         MotionState* pMotionState = new MotionState( it->obj );
         btScalar mass( 0.0f );
-        btSphereShape* pShape = new btSphereShape( btScalar(1.0f) );
+        //btSphereShape* pShape = new btSphereShape( btScalar(it->halfExtent) );
+        btConvexInternalShape* pShape = BulletProxy::getShape( it->type, it->halfExtent );
+        mpCollisionShapes->push_back( pShape );
 
         btRigidBody* pRb = new btRigidBody( mass, pMotionState, pShape );
         pRb->setUserPointer( it->context );
@@ -153,9 +190,49 @@ void BulletProxy::TrackObjects(std::vector<ObjectData>& objects)
     }
 }
 
-void BulletProxy::SetCollisionCallback(void (*cb)(const CollisionInfo&))
+void BulletProxy::ReleaseTrackedObjects()
+{
+    Log::Info( "Objects left: " + STR(mpWorld->getNumCollisionObjects()));
+
+//    for ( int idx = 0; idx < size; ++idx )
+//    {
+//        mpWorld->removeCollisionObject( array[idx] );
+//    }
+
+    for ( int i = mpWorld->getNumCollisionObjects() - 1; i >= 0; --i )
+    {
+        btCollisionObject* obj = mpWorld->getCollisionObjectArray()[ i ];
+        btRigidBody* body = btRigidBody::upcast( obj );
+        if ( body && body->getMotionState() )
+        {
+            delete body->getMotionState();
+        }
+
+        mpWorld->removeCollisionObject( obj );
+        delete obj;
+    }
+
+    //delete collision shapes
+    for ( int j = 0; j < mpCollisionShapes->size(); ++j )
+    {
+        btCollisionShape* shape = (*mpCollisionShapes)[j];
+        (*mpCollisionShapes)[ j ] = NULL;
+        delete shape;
+    }
+
+    mpCollisionShapes->resize( 0 );
+
+    Log::Info( "Objects left: "+ STR(mpWorld->getNumCollisionObjects()));
+}
+
+void BulletProxy::SetCollisionCallback(void (*cb)(const CollisionInfo&, void*))
 {
     gCollisionCb = cb;
+}
+
+void BulletProxy::SetCallbackExtraData(void* pData)
+{
+    gpExtraUserData = pData;
 }
 
 

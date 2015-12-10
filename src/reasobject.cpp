@@ -1,30 +1,25 @@
 #include <cassert>
-#include <GL/gl.h>
+//#include <GL/gl.h>
 #include <glm/mat4x4.hpp>
 #include "pbconfig.h"
 #include "core/pbutil.h"
 #include "shadercompiler.h"
-#include "instancedmesh.h"
+#include "instancedgeometry.h"
 #include "reasobject.h"
 
 namespace pb
 {
 
 ReasObject::ReasObject(const ReasObject& rhs) :
-    ReasObject()
+    InstancedObject( rhs )
 {
-    //obj = rhs;
-    mpMesh = rhs.mpMesh;
-    mId = mpMesh->AddInstance();
-    mpTransform = mpMesh->Transform( mId );
+    //mpTransform = mpMesh->Transform( mId );
 }
 
 ReasObject::ReasObject() :
-    mId( 0 ),
-    mpMesh( NULL )
+    InstancedObject(),
+    mpColor( NULL )
 {
-    //mStatus = init();
-    mStatus = PB_ERR;
 }
 
 ReasObject::~ReasObject()
@@ -33,18 +28,26 @@ ReasObject::~ReasObject()
     //PB_DELETE( mpMesh );
 }
 
-void ReasObject::Make(ReasObject& obj)
-{
-    // TODO set size based in GL_MAX_INSTANCES
-    obj.mHintPerInstanceTableSize = 50000;
-    obj.mStatus = obj.init();
-}
+//void ReasObject::Make(ReasObject& obj)
+//{
+//    // TODO set size based in GL_MAX_INSTANCES
+//    obj.mHintPerInstanceTableSize = 500000;
+//    obj.mStatus = obj.init();
+//}
 
-void ReasObject::MakeAnother(const ReasObject& alpha, ReasObject& another)
+void ReasObject::MakeAnother(InstancedObject* pAnother)
 {
-    another.mpMesh = alpha.mpMesh;
-    another.mId = another.mpMesh->AddInstance();
-    another.mpTransform = another.mpMesh->Transform( another.mId );
+    assert( mId == 0 );
+
+    ReasObject* pOther = static_cast< ReasObject* >( pAnother );
+
+    pOther->mpGeometry = mpGeometry;
+    pOther->mId = mpGeometry->AddInstance();
+
+    f32_attribs* attribs = geometry< f32_attribs, u32_attribs >()->AttributesF32( pOther->mId );
+    pOther->mpTransform = &attribs->transform;
+    u32_attribs* attribsu32 = geometry< f32_attribs, u32_attribs >()->AttributesU32( pOther->mId );
+    pOther->mpColor = &attribsu32->color;
 }
 
 PBError ReasObject::init()
@@ -52,24 +55,33 @@ PBError ReasObject::init()
     glm::vec3 srcPos[] = {
 
         glm::vec3( 0.0f, -0.5f, 0.0f ),
-        glm::vec3( 0.0f, 0.0f, 0.0f ),
         glm::vec3( 0.0f, 0.5f, 0.0f )
 //        glm::vec3( 0.4f, 0.1f, 0.0f ),
 //        glm::vec3( -0.5f, -0.3f, 0.0f )
 
     };
 
+// good color
+//    uint32_t srcColors[] = {
+//        //ABGR
+//        0x02020000,
+//        0x02040700,
+//        0x02080004
+////        0x00010000,
+////        0x01020000
+//
+//    };
+
     uint32_t srcColors[] = {
         //ABGR
-        0x01010000,
-        0x01020000,
-        0x02040000
+        0xFF080000,
+        0xFF080000
 //        0x00010000,
 //        0x01020000
 
     };
 
-    uint32_t srcIdx[] = { 0, 1, 2 };
+    uint32_t srcIdx[] = { 0, 1 };
 
 
     scoped_ptr<Positions> pPositions( new Positions(srcPos, srcPos + sizeof(srcPos) / sizeof(srcPos[0])) );
@@ -94,7 +106,7 @@ PBError ReasObject::init()
         return PB_ERR;
     }
 
-    mpMesh.reset( new InstancedMesh(
+    mpGeometry.reset( new InstancedGeometry< f32_attribs, u32_attribs >(
         GL_LINE_STRIP,
         pIndices.Disown(),
         pPositions.Disown(),
@@ -102,16 +114,30 @@ PBError ReasObject::init()
         idProgram,
         mHintPerInstanceTableSize) );
 
-    if ( mpMesh == NULL )
+    if ( mpGeometry == NULL )
     {
         PB_RETURN_ALLOCFAIL();
     }
 
-    mId = mpMesh->AddInstance();
-    mpTransform = mpMesh->Transform( mId );
+    mId = mpGeometry->AddInstance();
 
+    f32_attribs* attribsf32 = geometry< f32_attribs, u32_attribs >()->AttributesF32( mId );
+    mpTransform = &attribsf32->transform;
+    u32_attribs* attribsu32 = geometry< f32_attribs, u32_attribs >()->AttributesU32( mId );
+    mpColor = &attribsu32->color;
 
-    return PB_ERR_OK;
+    attribDesc f32attribDesc[] = { { attribDesc::SizeMat4 } };
+    attribDesc u32attribDesc[] = { { attribDesc::SizeRGBA } };
+
+    geometry< f32_attribs, u32_attribs >()->UseF32Layout( f32attribDesc, 1 );
+    geometry< f32_attribs, u32_attribs >()->UseUint32Layout( u32attribDesc, 1 );
+
+    return InstancedObject::init();
+}
+
+void ReasObject::SetColor(unsigned int rgba)
+{
+    *mpColor = rgba;
 }
 
 void ReasObject::Update()
@@ -120,21 +146,20 @@ void ReasObject::Update()
     {
         computeTransform();
     }
+
+    geometry< f32_attribs, u32_attribs >()->UpdateAttributesU32( mId );
 }
 
 void ReasObject::Draw(const glm::mat4& vp)
 {
     assert( mId == 0 );
-    mpMesh->Render( vp );
+    mpGeometry->Render( vp );
 }
 
-void ReasObject::computeTransform()
+void ReasObject::updateTransformAttrib()
 {
-    if ( transformDirty() )
-    {
-        Object::computeTransform();
-        mpMesh->UpdateTransform( mId );
-    }
+    // TODO update just the transform
+    geometry< f32_attribs, u32_attribs >()->UpdateAttributesF32( mId );
 }
 
 

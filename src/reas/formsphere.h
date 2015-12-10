@@ -20,18 +20,20 @@ private:
 
 public:
 
-    FormSphere(const Vec3& pos = Vec3(0,0,0), const Vec3& dir = Vec3(0,0,0));
+    FormSphere(Progress* pProgress, const Vec3& pos, const Vec3& dir, float speed, float angSpeed, float halfExtent);
     virtual ~FormSphere();
-
-    virtual bool CollidesWith(Form* form);
+    void MakeAnother(InstancedObject* pAnother);
+    float HalfSize() { return radius; };
+    BulletProxy::ColliderType ColliderType() { return BulletProxy::Sphere; };
 
 protected:
 
     PBError init();
+    void updateTransformAttrib();
 
-private:
+public:
 
-    float mRadius;
+    float radius;
 
 };
 

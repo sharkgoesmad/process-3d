@@ -1,7 +1,7 @@
-#include <GL/gl.h>
 #include <shadercompiler.h>
+#include <glm/gtc/random.hpp>
 #include <pbconfig.h>
-#include <instancedmesh.h>
+#include <instancedgeometry.h>
 #include "formsphere.h"
 
 namespace pb
@@ -10,13 +10,31 @@ namespace pb
 using namespace reas;
 
 
-void create(Positions& vertices, Indices& indices);
-
-
-FormSphere::FormSphere(const Vec3& pos, const Vec3& dir) :
-    Form( pos, dir )
+struct f32_attribs
 {
-    SetPosition( position );
+    Mat4 transform;
+};
+
+typedef uint32_t u32_attribs;
+
+
+static void create(Positions& vertices, Indices& indices);
+
+
+FormSphere::FormSphere(
+    Progress* pProgress,
+    const Vec3& pos,
+    const Vec3& dir,
+    float speed,
+    float angSpeed,
+    float halfExtent) :
+    Form( pProgress, pos, dir, speed, angSpeed ),
+    radius( halfExtent )
+{
+    // TODO
+    //radius = glm::linearRand( 0.1f, 2.0f );
+    //radius = 1.0f;
+    Scale( radius );
 }
 
 FormSphere::~FormSphere()
@@ -36,7 +54,7 @@ PBError FormSphere::init()
     }
 
     create( *pSrcPos, *pSrcInd );
-    pSrcCol->assign( pSrcPos->size(), 0x02FFFFFF );
+    pSrcCol->assign( pSrcPos->size(), 0x010000FF );
 
     scoped_ptr<Positions> pPositions( pSrcPos );
     scoped_ptr<ColorsRGBA> pColors( pSrcCol );
@@ -47,35 +65,55 @@ PBError FormSphere::init()
     idFs = ShaderCompiler::CompileFromFile( PB_RESOURCE_PATH("shaders/sphere_fs.glsl"), ShaderCompiler::Shader_Fragment );
     idProgram = ShaderCompiler::Program( idVs, idFs );
 
+    ShaderCompiler::DeleteShader( idVs );
+    ShaderCompiler::DeleteShader( idFs );
+
     if ( idProgram == PB_GL_INVALID_ID )
     {
         Log::Error( "Failed creating program" );
         return PB_ERR;
     }
 
-    mpMesh.reset( new InstancedMesh(
-        GL_TRIANGLES,
+    mpGeometry.reset( new InstancedGeometry< f32_attribs, u32_attribs >(
+        GL_POINTS,
         pIndices.Disown(),
         pPositions.Disown(),
         pColors.Disown(),
         idProgram,
         mHintPerInstanceTableSize) );
 
-    if ( mpMesh == NULL )
+    if ( mpGeometry == NULL )
     {
         PB_RETURN_ALLOCFAIL();
     }
 
+    mId = mpGeometry->AddInstance();
+    f32_attribs* attribs = geometry< f32_attribs, u32_attribs >()->AttributesF32( mId );
+    mpTransform = &attribs->transform;
+
+    attribDesc f32attribDesc[] = { { attribDesc::SizeMat4 } };
+    geometry< f32_attribs, u32_attribs >()->UseF32Layout( f32attribDesc, 1 );
+
     return InstancedObject::init();
 }
 
-bool FormSphere::CollidesWith(Form* pForm)
-{
-    FormSphere* pSF = static_cast<FormSphere*>( pForm );
-    Vec3 dist( position - pSF->position );
-    float radii = mRadius + pSF->mRadius;
 
-    return glm::length( dist ) <= radii;
+void FormSphere::MakeAnother(InstancedObject* pAnother)
+{
+    assert( mId == 0 );
+
+    FormSphere* pOther = static_cast< FormSphere* >( pAnother );
+
+    pOther->mpGeometry = mpGeometry;
+    pOther->mId = mpGeometry->AddInstance();
+    f32_attribs* attribs = geometry< f32_attribs, u32_attribs >()->AttributesF32( pOther->mId );
+    pOther->mpTransform = &attribs->transform;
+}
+
+void FormSphere::updateTransformAttrib()
+{
+    // TODO update just the transform
+    geometry< f32_attribs, u32_attribs >()->UpdateAttributesF32( mId );
 }
 
 // https://gist.github.com/zwzmzd/0195733fa1210346b00d
@@ -113,6 +151,7 @@ void create(Positions& vertices, Indices& indices)
        //indices.push_back(GL_PRIMITIVE_RESTART_FIXED_INDEX);
    }
 }
+
 
 }
 

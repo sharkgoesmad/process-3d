@@ -10,40 +10,49 @@
 namespace pb
 {
 
-class InstancedMesh;
+class IInstancedGeometry;
+template < typename FT, typename UT > class InstancedGeometry;
 
 class InstancedObject : public Object
 {
 
 private:
 
-    InstancedObject(const InstancedObject& rhs);
     InstancedObject& operator=(const InstancedObject& rhs);
 
 public:
 
     InstancedObject();
+    InstancedObject(const InstancedObject& rhs);
     virtual ~InstancedObject();
-    static void Make(InstancedObject& obj, unsigned int instances);
-    static void MakeAnother(const InstancedObject& alpha, InstancedObject& another);
-    void Update();
+    static void Make(InstancedObject* pObj, unsigned int instances);
+    virtual void MakeAnother(InstancedObject* pAnother) = 0;
+    virtual void Update();
     void Draw(const Mat4& vp);
 
 protected:
 
+    template < typename FT, typename UT >
+    InstancedGeometry<FT,UT>* geometry();
+
     void computeTransform();
+    virtual void updateTransformAttrib() = 0;
     PBError virtual init();
 
 protected:
 
-    unsigned int mHintPerInstanceTableSize;
-    std::shared_ptr<InstancedMesh> mpMesh;
-
-private:
-
     unsigned int mId;
+    unsigned int mHintPerInstanceTableSize;
+    std::shared_ptr<IInstancedGeometry> mpGeometry;
 
 };
+
+
+template < typename FT, typename UT >
+InstancedGeometry<FT,UT>* InstancedObject::geometry()
+{
+    return static_cast< InstancedGeometry<FT,UT>* >( mpGeometry.get() );
+}
 
 }
 

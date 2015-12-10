@@ -3,6 +3,7 @@
 
 #include <core/glmcfg.h>
 #include <core/pbutil.h>
+#include <bulletproxy.h>
 #include <instancedobject.h>
 
 namespace pb
@@ -11,7 +12,7 @@ namespace pb
 namespace reas
 {
 
-class BoundsVolume;
+class Progress;
 
 class Form : public InstancedObject
 {
@@ -23,15 +24,18 @@ private:
 
 public:
 
-    Form(const Vec3& pos = Vec3(0,0,0), const Vec3& dir = Vec3(0,0,0));
+    Form(Progress* pProgress, const Vec3& pos, const Vec3& dir, float speed, float angSpeed);
     virtual ~Form();
-
-    virtual bool CollidesWith(Form* form) = 0;
+    virtual float HalfSize() = 0;
+    virtual BulletProxy::ColliderType ColliderType() = 0;
 
 public:
 
     Vec3 direction;
-    Vec3 position;
+    Vec3 initialPosition;
+    float speed;
+    float angSpeed;
+    Progress* pprogress;
 
 private:
 

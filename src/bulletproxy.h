@@ -5,10 +5,14 @@
 #include "core/glmcfg.h"
 
 class btDefaultCollisionConfiguration;
+class btCollisionShape;
 class btCollisionDispatcher;
 class btBroadphaseInterface;
 class btSequentialImpulseConstraintSolver;
 class btDiscreteDynamicsWorld;
+class btConvexInternalShape;
+template < class T >
+class btAlignedObjectArray;
 
 namespace pb
 {
@@ -21,9 +25,17 @@ class BulletProxy
 
 public:
 
+    enum ColliderType
+    {
+        Sphere = 0,
+        LineZ
+    };
+
     struct ObjectData
     {
         Object* obj;
+        float halfExtent;
+        ColliderType type;
         void* context;
     };
 
@@ -35,7 +47,7 @@ public:
         Vec3  normal2;
     };
 
-    typedef void (*CollisionCallback)(const CollisionInfo&);
+    typedef void (*CollisionCallback)(const CollisionInfo&, void*);
 
 private:
 
@@ -49,13 +61,16 @@ public:
 
     void Step(float timeStep );
     void TrackObjects(std::vector<ObjectData>& objects);
-    void SetCollisionCallback(void (*callback)(const CollisionInfo&));
+    void ReleaseTrackedObjects();
+    void SetCollisionCallback(void (*callback)(const CollisionInfo&, void*));
+    void SetCallbackExtraData(void* pData);
 
 private:
 
     BulletProxy();
     ~BulletProxy();
     PBError init();
+    btConvexInternalShape* getShape(ColliderType type, float halfExtent);
 
 private:
 
@@ -67,6 +82,7 @@ private:
     btBroadphaseInterface* mpBVTiface;
     btSequentialImpulseConstraintSolver* mpSolver;
     btDiscreteDynamicsWorld* mpWorld;
+    btAlignedObjectArray<btCollisionShape*>* mpCollisionShapes;
 
 };
 

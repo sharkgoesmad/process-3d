@@ -23,3 +23,9 @@ add_subdirectory("${PB_EXT_SOURCES_DIR}/glew/build/cmake")
 set(BUILD_CPU_DEMOS OFF)
 set(BUILD_BULLET2_DEMOS OFF)
 add_subdirectory("${PB_EXT_SOURCES_DIR}/bullet3")
+
+
+# ANTTWEAKBAR
+set(ATB_OPENGL_HEADER "${PB_EXT_SOURCES_DIR}/glew/include/GL/glew.h")
+set(SDL2_INCLUDE_DIR "${PB_EXT_SOURCES_DIR}/SDL2/include")
+add_subdirectory("${PB_EXT_SOURCES_DIR}/AntTweakBar-sdl2")

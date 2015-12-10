@@ -28,7 +28,7 @@ public:
     void SetPosition(float x, float y, float z);
     void SetPosition(const Vec3& vector);
 
-    const Vec3& Position();
+    const Vec3& Position() const;
 
     void RotateX(float value);
     void RotateY(float value);
@@ -38,17 +38,23 @@ public:
     void Rotate(const Quat& quaternion);
     void SetOrientation(const Quat& quaternion);
 
+    const Quat& Orientation() const;
+
     void LookAt(const Vec3& vector);
 
+    void Scale(float value);
+
+    void SetVisible(bool visible);
+    bool Visible();
 
     const Mat4& Transform();
 
 protected:
 
     virtual void computeTransform();
-    inline void markTransformDirty();
-    inline void markTransformClean();
-    inline bool transformDirty();
+    void markTransformDirty();
+    void markTransformClean();
+    bool transformDirty();
 
 private:
 
@@ -62,30 +68,51 @@ protected:
 
 private:
 
+    bool mVisible;
     bool mTransformDirty;
-    Mat4* mpWorldTransform;
-    bool mWorldTransformDirty;
-
 
     Vec3 mPosition;
     Quat mRotation;
+    Vec3 mScale;
 
 };
 
-void Object::markTransformDirty()
+
+inline const Vec3& Object::Position() const
+{
+    return mPosition;
+}
+
+inline const Quat& Object::Orientation() const
+{
+    return mRotation;
+}
+
+inline bool Object::Visible()
+{
+    return mVisible;
+}
+
+inline void Object::markTransformDirty()
 {
     mTransformDirty = true;
 }
 
-void Object::markTransformClean()
+inline void Object::markTransformClean()
 {
     mTransformDirty = false;
 }
 
-bool Object::transformDirty()
+inline bool Object::transformDirty()
 {
     return mTransformDirty;
 }
+
+inline const Mat4& Object::Transform()
+{
+    return *mpTransform;
+}
+
 
 }
 

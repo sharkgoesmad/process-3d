@@ -49,6 +49,7 @@ public:
 
     inline bool IsNull() { return mpManaged == NULL; };
     inline operator bool() { return !IsNull(); };
+    inline T* operator->() { return mpManaged; };
 
 private:
 

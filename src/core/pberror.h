@@ -7,8 +7,8 @@ namespace pb
 
 
 #define PB_ERROR_SDL -1
-
-
+#define PB_ERROR_TW -2
+#define PB_ERROR_CONTROLLER -3
 
 
 }

@@ -123,6 +123,12 @@ unsigned int ShaderCompiler::Program(unsigned int idVertexShader, unsigned int i
     return idProgram;
 }
 
+void ShaderCompiler::DeleteShader(unsigned int& idShader)
+{
+    glDeleteShader( idShader );
+    idShader = PB_GL_INVALID_ID;
+}
+
 
 };
 

@@ -7,10 +7,13 @@
 
 
 class SDL_Window;
+struct _SDL_GameController;
 
 
 namespace pb
 {
+
+class GLCtx;
 
 class App
 {
@@ -46,6 +49,8 @@ private:
     bool mLoopShouldRun;
     SDL_Window* mpWindow;
     void* mGLContext;
+    GLCtx* mpGLctx;
+    _SDL_GameController* mpController;
 
 };
 

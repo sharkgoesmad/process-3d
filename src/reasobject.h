@@ -4,16 +4,26 @@
 #include <memory>
 #include "core/pbutil.h"
 #include "core/glmcfg.h"
-#include "core/object.h"
+#include "instancedobject.h"
 
 
 namespace pb
 {
 
-class InstancedMesh;
-
-class ReasObject : public Object
+class ReasObject : public InstancedObject
 {
+
+private:
+
+    struct f32_attribs
+    {
+        Mat4 transform;
+    };
+
+    struct u32_attribs
+    {
+        ColorRGBA color;
+    };
 
 private:
 
@@ -24,27 +34,20 @@ public:
 
     ReasObject();
     virtual ~ReasObject();
-    static void Make(ReasObject& obj);
-    static void MakeAnother(const ReasObject& alpha, ReasObject& another);
+    //static void Make(ReasObject& obj);
+    void MakeAnother(InstancedObject* pAnother);
+    void SetColor(unsigned int rgba);
     void Update();
     void Draw(const Mat4& vp);
-
-protected:
-
-    void computeTransform();
-
-protected:
-
-    unsigned int mHintPerInstanceTableSize;
 
 private:
 
     PBError init();
+    void updateTransformAttrib();
 
 private:
 
-    unsigned int mId;
-    std::shared_ptr<InstancedMesh> mpMesh;
+    ColorRGBA* mpColor;
 
 };
 

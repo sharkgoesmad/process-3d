@@ -17,16 +17,17 @@ static const Vec3 vec_fwd( 0.0f, 0.0f, -1.0f );
 Object::Object() :
     mStatus( PB_ERR ),
     mpTransform( NULL ),
+    mVisible( true ),
     mTransformDirty( true ),
     mPosition( 0.0f ),
-    mRotation( Vec3(0.0f, 0.0f, 0.0f) )
+    mRotation( Vec3(0.0f, 0.0f, 0.0f) ),
+    mScale( 1.0f )
 {
     mStatus = init();
 }
 
 Object::~Object()
 {
-    //PB_DELETE( mpTransform );
 }
 
 PBError Object::init()
@@ -43,7 +44,7 @@ void Object::computeTransform()
 //        STR(m[0][1])+" "+STR(m[1][1])+" "+STR(m[2][1])+" "+STR(m[3][1])+"\n" +
 //        STR(m[0][2])+" "+STR(m[1][2])+" "+STR(m[2][2])+" "+STR(m[3][2])+"\n" +
 //        STR(m[0][3])+" "+STR(m[1][3])+" "+STR(m[2][3])+" "+STR(m[3][3])+"\n\n");
-    *mpTransform = glm::translate( mPosition ) * glm::toMat4( mRotation );
+    *mpTransform = glm::translate( mPosition ) * glm::toMat4( mRotation ) * glm::scale( mScale );
 }
 
 void Object::Translate(float x, float y, float z)
@@ -156,15 +157,16 @@ void Object::LookAt(const Vec3& vector)
     markTransformDirty();
 }
 
-const Vec3& Object::Position()
+void Object::Scale(float value)
 {
-    return mPosition;
+    mScale *= value;
 }
 
-const Mat4& Object::Transform()
+void Object::SetVisible(bool visible)
 {
-    return *mpTransform;
+    mVisible = visible;
 }
+
 
 }
 
