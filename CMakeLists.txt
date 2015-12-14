@@ -10,6 +10,12 @@ include("cmake/compiler.cmake")
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     option(PB_DEBUG ON)
     add_definitions(-DPB_DEBUG)
+    set(ENV{CFLAGS} "-O0 -g")
+    set(ENV{CXXFLAGS} "$ENV{CFLAGS}")
+else()
+    add_definitions(-DNDEBUG)
+    set(ENV{CFLAGS} "-O3")
+    set(ENV{CXXFLAGS} "$ENV{CFLAGS}")
 endif()
 
 
@@ -68,4 +74,7 @@ message(STATUS "${PB_PROJECT} configuration:")
 message(STATUS "  ROOT_DIR: ${PB_ROOT_DIR}")
 message(STATUS "  PB_OUTPUT_DIR: ${PB_OUTPUT_DIR}")
 message(STATUS "  PB_INCLUDE_DIRS: ${PB_INCLUDE_DIRS}")
+
+message(STATUS "  CFLAGS: $ENV{CFLAGS}")
+message(STATUS "  CXXFLAGS: $ENV{CXXFLAGS}")
 
